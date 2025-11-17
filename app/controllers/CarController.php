@@ -19,12 +19,20 @@ class CarController {
     if ($brand) { $sql .= ' AND brand = ?'; $params[] = $brand; }
     if ($min !== null) { $sql .= ' AND price >= ?'; $params[] = $min; }
     if ($max !== null) { $sql .= ' AND price <= ?'; $params[] = $max; }
-    $sql .= ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-    $params[] = $limit; $params[] = $offset;
+    $sql .= ' ORDER BY created_at DESC LIMIT :lim OFFSET :off';
 
     $stmt = db()->prepare($sql);
-    $stmt->execute($params);
-    json(['data' => $stmt->fetchAll(), 'page' => $page]);
+
+    /* bind parameter filter yang menggunakan ? dulu */
+    foreach ($params as $k => $v) {
+        $stmt->bindValue($k + 1, $v);   // PDO::PARAM_STR otomatis
+    }
+    /* bind LIMIT & OFFSET sebagai integer */
+    $stmt->bindValue(':lim', $limit,  PDO::PARAM_INT);
+    $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
+
+    $stmt->execute();
+    json(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC), 'page' => $page]);
   }
 
   public static function detail($id) {
