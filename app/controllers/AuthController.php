@@ -31,7 +31,7 @@ class AuthController {
     $token = generateToken();
     db()->prepare('UPDATE users SET api_token = ?, updated_at = NOW() WHERE id = ?')->execute([$token, $user['id']]);
     json([
-      'token' => $token,
+      'api_token' => $token,
       'user' => [
         'id' => $user['id'],
         'name' => $user['name'],
